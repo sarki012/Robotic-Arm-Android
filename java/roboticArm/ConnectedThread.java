@@ -79,83 +79,8 @@ public class ConnectedThread extends Thread {
                 break;
             }
 
-            /////////////////Bucket Curl//////////////////////
-            returnArray = mIntToChars.IntToCharsMethod(c);      //Send an integer and get three chars in the returnArray as a return value
-            write("c");               //c for curl. Number of pixels in the x-direction
-            write(returnArray[3]);          //d3 (+/-)
-            write(returnArray[2]);          //d2 (Left digit)
-            write(returnArray[1]);          //d1 (middle digit)
-            write(returnArray[0]);          //d0 (right digit)
-            SystemClock.sleep(10);
-
-            ////////////////Boom//////////////////////////////
-            returnArray = mIntToChars.IntToCharsMethod(b);
-            //Send an integer and get three chars in the returnArray as a return value
-            write("b");               //b for boom. Number of pixels in the y-direction
-            write(returnArray[3]);          //d3 (+/-)
-            write(returnArray[2]);          //d2 (Left digit)
-            write(returnArray[1]);          //d1 (middle digit)
-            write(returnArray[0]);          //d0 (right digit)
-            SystemClock.sleep(10);
-
-            if(stopSendingLeft == 1 || stopSendingOrbit == 1){      //Bottom left joystick thumb is lifted or x-coordinate is between -300 and 300
-                write("#");             //Signal to firmware not to touch the rotate stepper motor
-            }
-            else {
-                ///////////Rotate//////////////////////////
-                returnArray = mIntToChars.IntToCharsMethod(o);      //Send an integer and get three chars in the returnArray as a return value
-                write("o");               //o for rotate. Number of pixels in the x-direction
-                write(returnArray[3]);          //d3 (+/-)
-                write(returnArray[2]);          //d2 (Left digit)
-                write(returnArray[1]);          //d1 (middle digit)
-                write(returnArray[0]);          //d0 (right digit)
-                SystemClock.sleep(10);
-            }
-
-            ////////////////Stick//////////////////////////////
-            returnArray = mIntToChars.IntToCharsMethod(s);
-            //Send an integer and get three chars in the returnArray as a return value
-            write("s");               //s for stick. Number of pixels in the y-direction
-            write(returnArray[3]);          //d3 (+/-)
-            write(returnArray[2]);          //d2 (Left digit)
-            write(returnArray[1]);          //d1 (middle digit)
-            write(returnArray[0]);          //d0 (right digit)
-            SystemClock.sleep(10);
-
-            if(stopSendingLeftTrack == 1){      //Left track thumb is lifted
-                write("$");               //Signal to firmware not to touch the motor
-            }
-            else {
-                ///////////////Left Track////////////////////////
-                returnArray = mIntToChars.IntToCharsMethod(l);      //Send an integer and get three chars in the returnArray as a return value
-                write("l");               //l for left track. Number of pixels in the y-direction
-                write(returnArray[3]);          //d3 (+/-)
-                write(returnArray[2]);          //d2 (Left digit)
-                write(returnArray[1]);          //d1 (middle digit)
-                write(returnArray[0]);          //d0 (right digit)
-                SystemClock.sleep(10);
-            }
-            if(stopSendingRightTrack == 1){      //Right track thumb is lifted
-                write("@");                //Signal to firmware not to touch the motor
-            }
-            else {
-                ///////////////Right Track/////////////////////////
-                returnArray = mIntToChars.IntToCharsMethod(r);      //Send an integer and get three chars in the returnArray as a return value
-                write("r");               //r for right track. Number of pixels in the y-direction
-                write(returnArray[3]);          //d3 (+/-)
-                write(returnArray[2]);          //d2 (Left digit)
-                write(returnArray[1]);          //d1 (middle digit)
-                write(returnArray[0]);          //d0 (right digit)
-                SystemClock.sleep(10);
-            }
-            ////////////////////////Delay/////////////////////////////
-            returnArray = mIntToChars.IntToCharsMethod(delay);      //Send an integer and get three chars in the returnArray as a return value
-            write("d");               //r for right track. Number of pixels in the y-direction
-            write(returnArray[3]);          //d3 (+/-)
-            write(returnArray[2]);          //d2 (Left digit)
-            write(returnArray[1]);          //d1 (middle digit)
-            write(returnArray[0]);          //d0 (right digit)
-            SystemClock.sleep(10);
+            write("Esark is a Mad Scientist");
+            SystemClock.sleep(1000);
         }
     }
 
