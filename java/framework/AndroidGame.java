@@ -5,10 +5,8 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -19,6 +17,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.AdapterView;
@@ -31,7 +30,6 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.esark.roboticArm.CommsActivity;
 import com.esark.roboticArm.R;
 import com.esark.roboticArm.RoboticArm;
 import com.esark.roboticArm.ConnectedThread;
@@ -42,24 +40,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
-import android.content.Context;
-import android.bluetooth.BluetoothSocket;
-import android.os.Bundle;
-
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.UUID;
-
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ArrayAdapter;
-import android.content.Intent;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 
 public abstract class AndroidGame extends Activity implements Game {
     Bundle newBundy = new Bundle();
@@ -71,13 +51,13 @@ public abstract class AndroidGame extends Activity implements Game {
     Screen screen;
     Context context = null;
     private final String TAG = AndroidGame.class.getSimpleName();
+    private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
 
     // #defines for identifying shared types between calling functions
     private final static int REQUEST_ENABLE_BT = 1; // used to identify adding bluetooth names
     public final static int MESSAGE_READ = 2; // used in bluetooth handler to identify message update
     private final static int CONNECTING_STATUS = 3; // used in bluetooth handler to identify message status
     Button enablebt,disablebt,scanbt;
-    private BluetoothAdapter BTAdapter;
     private Set<BluetoothDevice>pairedDevices;
     ListView lv;
     public final static String EXTRA_ADDRESS = null;
@@ -100,7 +80,10 @@ public abstract class AndroidGame extends Activity implements Game {
     public static char startChar = 0;
     public static int width = 0;
     public static int height = 0;
-
+    public BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
+    BluetoothSocket mmSocket;
+    BluetoothDevice mmDevice;
+    private Handler mHandler; // Our main handler that will receive callback notifications
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -127,7 +110,21 @@ public abstract class AndroidGame extends Activity implements Game {
         if (BTAdapter.isEnabled()){
             scanbt.setVisibility(View.VISIBLE);
         }
-
+        //Message from run() in ConnectedThread mHandler.obtain message
+        mHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == MESSAGE_READ) {
+                    String readMessage = null;
+                    try {
+                        readMessage = new String((byte[]) msg.obj, "UTF-8");
+                        System.out.println(readMessage);
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
         // Ask for location permission if not already allowed
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
@@ -199,11 +196,53 @@ public abstract class AndroidGame extends Activity implements Game {
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             String info = ((TextView) view).getText().toString();
             String address = info.substring(info.length() - 17);
-            Toast.makeText(getApplicationContext(), info, Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(AndroidGame.this, CommsActivity.class);
-            intent.putExtra(EXTRA_ADDRESS, address);
-            startActivity(intent);
-          //  startActivity(intent);
+            new Thread() {
+                @Override
+                public void run() {
+                    boolean fail = false;
+                    final BluetoothDevice device = BTAdapter.getRemoteDevice(address);
+                    BluetoothSocket tmp = null;
+                    mmDevice = device;
+                    try {
+                        UUID uuid = UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee");
+                        tmp = mmDevice.createRfcommSocketToServiceRecord(uuid);
+                    } catch (IOException e) {
+                        Log.e(TAG, "Socket's create() method failed", e);
+                    }
+                    mmSocket = tmp;
+                    BTAdapter.cancelDiscovery();
+                    try {
+                        mmSocket.connect();
+
+                    } catch (IOException connectException) {
+                        Log.v(TAG, "Connection exception!");
+                        try {
+                            mmSocket.close();
+                            /*mmSocket = (BluetoothSocket) mmDevice.getClass().getMethod("createRfcommSocket", new Class[]{int.class}).invoke(mmDevice, 1);
+                            mmSocket.connect();
+                        } catch (NoSuchMethodException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InvocationTargetException e) {
+                            e.printStackTrace();
+                        } */
+                        } catch (IOException closeException) {
+
+                        }
+                    }
+                    mConnectedThread = new ConnectedThread(mmSocket, mHandler);
+                    mConnectedThread.start();
+                    /*
+                    Toast.makeText(getApplicationContext(), info, Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(AndroidGame.this, CommsActivity.class);
+                    intent.putExtra(EXTRA_ADDRESS, address);
+                    startActivity(intent);
+
+                     */
+                    //  startActivity(intent);
+                }
+            }.start();
         }
     };
 
