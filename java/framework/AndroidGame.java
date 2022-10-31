@@ -2,6 +2,9 @@ package com.esark.framework;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityOptions;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -12,6 +15,8 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Point;
+import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,6 +25,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
+import android.view.WindowInsets;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -27,21 +34,28 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.fragment.app.Fragment;
+import androidx.window.WindowMetrics;
 
 import com.esark.roboticArm.R;
 import com.esark.roboticArm.RoboticArm;
 import com.esark.roboticArm.ConnectedThread;
+import com.esark.roboticArm.VideoStream;
 
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-public abstract class AndroidGame extends Activity implements Game {
+public abstract class AndroidGame extends AppCompatActivity implements Game {
     Bundle newBundy = new Bundle();
     AndroidFastRenderView renderView;
     Graphics graphics;
@@ -57,7 +71,7 @@ public abstract class AndroidGame extends Activity implements Game {
     private final static int REQUEST_ENABLE_BT = 1; // used to identify adding bluetooth names
     public final static int MESSAGE_READ = 2; // used in bluetooth handler to identify message update
     private final static int CONNECTING_STATUS = 3; // used in bluetooth handler to identify message status
-    Button enablebt,disablebt,scanbt;
+    Button enablebt,disablebt,scanbt, mShowGraphBtn;
     private Set<BluetoothDevice>pairedDevices;
     ListView lv;
     public final static String EXTRA_ADDRESS = null;
@@ -84,13 +98,52 @@ public abstract class AndroidGame extends Activity implements Game {
     BluetoothSocket mmSocket;
     BluetoothDevice mmDevice;
     private Handler mHandler; // Our main handler that will receive callback notifications
+    public static WebView mWebView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+    //    mWebView = (WebView) findViewById(R.id.activity_main_webview);
+      //  String vidAddress = "http://10.0.0.203:8081";
+        //mWebView.loadUrl(vidAddress);
+        /*
+        Intent i = new Intent(this, VideoStream.class);
+        //    PackageManager manager = getPackageManager();
+        //  i = manager.getLaunchIntentForPackage("com.google.android.apps.maps");
 
+        i.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT |
+                Intent.FLAG_ACTIVITY_NEW_TASK |
+                Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        //Rect mBounds = new Rect(0, 0, getScreenWidth(this), getScreenHeight(this));
+        Rect mBounds = new Rect(1200, 0, 2100, 700);
+        ActivityOptions mOptions = getActivityOptions(AndroidGame.this);
+        mOptions = mOptions.setLaunchBounds(mBounds);
+
+        startActivity(i, mOptions.toBundle());
+        */
+
+        /*
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        VideoStream fragment = new VideoStream();
+        fragmentTransaction.add(R.id.fragment, fragment);
+        fragmentTransaction.commit();
+
+        // Begin the transaction
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        // Replace the contents of the container with the new fragment
+        ft.add(R.id.fragment, new VideoStream());
+        // or ft.add(R.id.your_placeholder, new FooFragment());
+        // Complete the changes added above
+        ft.commit();
+*/
+       //Intent i = new Intent(AndroidGame.this,VideoStream.class);
+        //startActivity(i);
         // Get the pixel dimensions of the screen
         Display display = getWindowManager().getDefaultDisplay();
         // Initialize the result into a Point object
@@ -104,7 +157,7 @@ public abstract class AndroidGame extends Activity implements Game {
         enablebt=(Button)findViewById(R.id.button_enablebt);
         disablebt=(Button)findViewById(R.id.button_disablebt);
         scanbt=(Button)findViewById(R.id.button_scanbt);
-
+        mShowGraphBtn = (Button)findViewById((R.id.display_btn));
         BTAdapter = BluetoothAdapter.getDefaultAdapter();
         lv = (ListView)findViewById(R.id.listView);
         if (BTAdapter.isEnabled()){
@@ -156,7 +209,52 @@ public abstract class AndroidGame extends Activity implements Game {
         input = new AndroidInput(this, renderView, scaleX, scaleY);
         screen = getStartScreen();
 
+        mShowGraphBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { showGraph(); }
+        });
     }
+
+    public static ActivityOptions getActivityOptions(Context context) {
+        ActivityOptions options = ActivityOptions.makeBasic();
+        int freeform_stackId = 5;
+        try {
+            Method method = ActivityOptions.class.getMethod("setLaunchWindowingMode", int.class);
+            method.invoke(options, freeform_stackId);
+        } catch (Exception e) { /* Gracefully fail */
+        }
+
+        return options;
+    }
+    /*
+    public static int getScreenWidth(@NonNull Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowMetrics windowMetrics = activity.getWindowManager().getCurrentWindowMetrics();
+            Insets insets = windowMetrics.getWindowInsets()
+                    .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
+            return windowMetrics.getBounds().width() - insets.left - insets.right;
+        } else {
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            return displayMetrics.widthPixels;
+        }
+    }
+
+    public static int getScreenHeight(@NonNull Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowMetrics windowMetrics = activity.getWindowManager().getCurrentWindowMetrics();
+            Insets insets = windowMetrics.getWindowInsets()
+                    .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
+            return windowMetrics.getBounds().height() - insets.top - insets.bottom;
+        } else {
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            return displayMetrics.heightPixels;
+        }
+    }
+    */
+
+
     public void on(View v){
         if (!BTAdapter.isEnabled()) {
             Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
