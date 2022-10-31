@@ -305,7 +305,7 @@ public class GameScreen extends Screen implements Input {
             }
         }
         if (renderCount == 5) {     //We're only going to draw the background and joysticks every 5th frame
-            g.drawLandscapePixmap(excavatorTabletLandscapeBackground, 0, 0);    //Draw background
+             g.drawLandscapePixmap(excavatorTabletLandscapeBackground, 0, 0);    //Draw background
             //If thumb is withing the gray circle
             if (leftThumbOutOfCircle == 0 && stopSendingLeft == 0) {
                 for (int k = 0; k <= leftHyp; k += 10) {    //For loop draws red joysticks 10 pixels apart from the origin to the thumb press
