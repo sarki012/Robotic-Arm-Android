@@ -2,6 +2,7 @@ package com.esark.videostreamtest2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ComponentName;
 import android.os.Bundle;
 
 import android.app.ActivityManager;
@@ -22,6 +23,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.esark.test.TestActivity;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -56,6 +59,20 @@ public class MainActivity extends AppCompatActivity {
         minimizeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, TestActivity.class);
+                startActivity(intent);
+                /*
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.setComponent(new ComponentName("com.esark.test","com.esark.test.TestActivity"));
+                startActivity(intent);
+                */
+
+                /*
+                Intent launchIntent = new Intent(MainActivity.this, TestActivity.class);
+               // Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.esark.test_shadow.TestActivity");
+                if (launchIntent != null) {
+                    startActivity(launchIntent); //null pointer check in case package name was not found ClassNotFoundException
+                }*/
                 // First it confirms whether the
                 // 'Display over other apps' permission in given
                 if (checkOverlayDisplayPermission()) {
@@ -69,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
                     // redirects to the Settings
                     requestOverlayDisplayPermission();
                 }
+
+                // Intent intent = new Intent(MainActivity.this, TestActivity.class);
+                //startActivity(intent);
             }
         });
     }
