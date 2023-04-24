@@ -2,31 +2,29 @@ package com.esark.framework;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.ActivityOptions;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.app.ActivityManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Point;
-import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
-import android.view.WindowInsets;
-import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -34,28 +32,25 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.fragment.app.Fragment;
-import androidx.window.WindowMetrics;
 
-import com.esark.roboticArm.R;
-import com.esark.roboticArm.RoboticArm;
-import com.esark.roboticArm.ConnectedThread;
-import com.esark.roboticArm.VideoStream;
+
+import com.esark.roboticarm.GameScreen;
+import com.esark.roboticarm.R;
+import com.esark.roboticarm.RoboticArm;
+import com.esark.roboticarm.ConnectedThread;
+import com.esark.video.FloatingWindow;
 
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-public abstract class AndroidGame extends AppCompatActivity implements Game {
+public abstract class AndroidGame extends Activity implements Game {
     Bundle newBundy = new Bundle();
     AndroidFastRenderView renderView;
     Graphics graphics;
@@ -63,19 +58,36 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
     Input input;
     FileIO fileIO;
     Screen screen;
-    Context context = null;
-    private final String TAG = AndroidGame.class.getSimpleName();
-    private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
 
+    private final String TAG = AndroidGame.class.getSimpleName();
+
+    private static final UUID BT_MODULE_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // "random" unique identifier
     // #defines for identifying shared types between calling functions
     private final static int REQUEST_ENABLE_BT = 1; // used to identify adding bluetooth names
     public final static int MESSAGE_READ = 2; // used in bluetooth handler to identify message update
     private final static int CONNECTING_STATUS = 3; // used in bluetooth handler to identify message status
+
+    // GUI Components
+    private TextView mBluetoothStatus;
+    private Button mScanBtn;
+    private Button mOffBtn;
+    private Button mListPairedDevicesBtn;
+    private Button mDiscoverBtn;
+    private ListView mDevicesListView;
+
+    public BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
+    BluetoothSocket mmSocket;
+    BluetoothDevice mmDevice;
+    private Set<BluetoothDevice> mPairedDevices;
+    private ArrayAdapter<String> mBTArrayAdapter;
+
+    private Handler mHandler; // Our main handler that will receive callback notifications
+    private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
+    private BluetoothSocket mBTSocket = null; // bi-directional client-to-client data path
     Button enablebt,disablebt,scanbt, mShowGraphBtn;
     private Set<BluetoothDevice>pairedDevices;
     ListView lv;
-    public final static String EXTRA_ADDRESS = null;
-    static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private AlertDialog dialog;
 
     private int number1000 = 0;
     private int number100 = 0;
@@ -88,62 +100,34 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
     private char bluetoothVal1 = 0;
     private char bluetoothVal0 = 0;
     private int j = 0;
+    private int k = 0;
+    private int m = 0;
+    public static final int bufferSize = 100;
+
     int n = 0;
     int t = 0;
     public static int landscape = 0;
     public static char startChar = 0;
     public static int width = 0;
     public static int height = 0;
-    public BluetoothAdapter BTAdapter = BluetoothAdapter.getDefaultAdapter();
-    BluetoothSocket mmSocket;
-    BluetoothDevice mmDevice;
-    private Handler mHandler; // Our main handler that will receive callback notifications
-    public static WebView mWebView;
 
+    public static int arrayFilled = 0;
+
+   // private LruCache<String, Bitmap> mMemoryCache;
+    //public int count = 0;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+                /*
+
+    If you setup the cache in the Application class then it will never get destroyed
+    until the app shuts down. You are guaranteed that the Application class will always
+    be "alive" when ever one of your activities are.
+         */
+
         setContentView(R.layout.activity_main);
-    //    mWebView = (WebView) findViewById(R.id.activity_main_webview);
-      //  String vidAddress = "http://10.0.0.203:8081";
-        //mWebView.loadUrl(vidAddress);
-        /*
-        Intent i = new Intent(this, VideoStream.class);
-        //    PackageManager manager = getPackageManager();
-        //  i = manager.getLaunchIntentForPackage("com.google.android.apps.maps");
 
-        i.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT |
-                Intent.FLAG_ACTIVITY_NEW_TASK |
-                Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        //Rect mBounds = new Rect(0, 0, getScreenWidth(this), getScreenHeight(this));
-        Rect mBounds = new Rect(1200, 0, 2100, 700);
-        ActivityOptions mOptions = getActivityOptions(AndroidGame.this);
-        mOptions = mOptions.setLaunchBounds(mBounds);
-
-        startActivity(i, mOptions.toBundle());
-        */
-
-        /*
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-        VideoStream fragment = new VideoStream();
-        fragmentTransaction.add(R.id.fragment, fragment);
-        fragmentTransaction.commit();
-
-        // Begin the transaction
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        // Replace the contents of the container with the new fragment
-        ft.add(R.id.fragment, new VideoStream());
-        // or ft.add(R.id.your_placeholder, new FooFragment());
-        // Complete the changes added above
-        ft.commit();
-*/
-       //Intent i = new Intent(AndroidGame.this,VideoStream.class);
-        //startActivity(i);
         // Get the pixel dimensions of the screen
         Display display = getWindowManager().getDefaultDisplay();
         // Initialize the result into a Point object
@@ -152,7 +136,7 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
         display.getSize(size);
         width = size.x;
         height = size.y;
-
+        mBluetoothStatus = (TextView)findViewById(R.id.bluetooth_status);
         //New Client Oncreate Bluetooth Code
         enablebt=(Button)findViewById(R.id.button_enablebt);
         disablebt=(Button)findViewById(R.id.button_disablebt);
@@ -163,24 +147,106 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
         if (BTAdapter.isEnabled()){
             scanbt.setVisibility(View.VISIBLE);
         }
+
+        // Ask for location permission if not already allowed
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+
         //Message from run() in ConnectedThread mHandler.obtain message
-        mHandler = new Handler(Looper.getMainLooper()) {
+        mHandler = new Handler(Looper.getMainLooper()){
             @Override
-            public void handleMessage(Message msg) {
-                if (msg.what == MESSAGE_READ) {
+            public void handleMessage(Message msg){
+                if(msg.what == MESSAGE_READ){
                     String readMessage = null;
                     try {
                         readMessage = new String((byte[]) msg.obj, "UTF-8");
                         System.out.println(readMessage);
+
+                        for(int t = 0; t < 50; t++) {
+                            if (readMessage.charAt(t) == '-') {
+                                t++;
+                            }
+                            if (readMessage.charAt(t) == 's') {         //Next char is a number
+                                t++;
+                                number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
+                                t++;
+                                number100 = (Character.getNumericValue(readMessage.charAt((t)))) * 100;
+                                t++;
+                                number10 = (Character.getNumericValue(readMessage.charAt((t)))) * 10;
+                                t++;
+                                number1 = Character.getNumericValue(readMessage.charAt((t)));
+                                if ((number1000 + number100 + number10 + number1) >= 0) {
+                                    //stickBuffer += (number1000 + number100 + number10 + number1);
+                                    GameScreen.stickADC[j] = (number1000 + number100 + number10 + number1);
+                                }
+                                j++;
+                                if (j >= bufferSize)
+                                    j = 0;
+                            }
+
+                            t++;
+                            if (readMessage.charAt(t) == 't') {         //Next char is a number
+                                t++;
+                                number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
+                                t++;
+                                number100 = (Character.getNumericValue(readMessage.charAt((t)))) * 100;
+                                t++;
+                                number10 = (Character.getNumericValue(readMessage.charAt((t)))) * 10;
+                                t++;
+                                number1 = Character.getNumericValue(readMessage.charAt((t)));
+                                if ((number1000 + number100 + number10 + number1) >= 0) {
+                                    GameScreen.tipADC = (number1000 + number100 + number10 + number1);
+                                }
+                                k++;
+                                if (k >= bufferSize) {
+                                    k = 0;
+                                }
+                            }
+                            t++;
+                            if (readMessage.charAt(t) == 'c') {         //Next char is a number
+                                t++;
+                                number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
+                                t++;
+                                number100 = (Character.getNumericValue(readMessage.charAt((t)))) * 100;
+                                t++;
+                                number10 = (Character.getNumericValue(readMessage.charAt((t)))) * 10;
+                                t++;
+                                number1 = Character.getNumericValue(readMessage.charAt((t)));
+                                if ((number1000 + number100 + number10 + number1) >= 0) {
+                                    GameScreen.clawADC[m] = (number1000 + number100 + number10 + number1);
+                                }
+                                m++;
+                                if (m >= bufferSize) {
+                                    m = 0;
+                                }
+                            }
+                        }
+
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
                 }
+
+                if(msg.what == CONNECTING_STATUS){
+                    if(msg.arg1 == 1)
+                        mBluetoothStatus.setText("Connected to Device: " + msg.obj);
+                    else
+                        mBluetoothStatus.setText("Connection Failed");
+                }
             }
         };
-        // Ask for location permission if not already allowed
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+
+        if (mBTArrayAdapter == null) {
+            // Device does not support Bluetooth
+            mBluetoothStatus.setText("Status: Bluetooth not found");
+            Toast.makeText(getApplicationContext(),"Bluetooth device not found!",Toast.LENGTH_SHORT).show();
+        }
+
+        mShowGraphBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { showGraph(); }
+        });
+
 
         boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
         if(isLandscape == true)
@@ -209,50 +275,7 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
         input = new AndroidInput(this, renderView, scaleX, scaleY);
         screen = getStartScreen();
 
-        mShowGraphBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) { showGraph(); }
-        });
     }
-
-    public static ActivityOptions getActivityOptions(Context context) {
-        ActivityOptions options = ActivityOptions.makeBasic();
-        int freeform_stackId = 5;
-        try {
-            Method method = ActivityOptions.class.getMethod("setLaunchWindowingMode", int.class);
-            method.invoke(options, freeform_stackId);
-        } catch (Exception e) { /* Gracefully fail */
-        }
-
-        return options;
-    }
-    /*
-    public static int getScreenWidth(@NonNull Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowMetrics windowMetrics = activity.getWindowManager().getCurrentWindowMetrics();
-            Insets insets = windowMetrics.getWindowInsets()
-                    .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
-            return windowMetrics.getBounds().width() - insets.left - insets.right;
-        } else {
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-            return displayMetrics.widthPixels;
-        }
-    }
-
-    public static int getScreenHeight(@NonNull Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowMetrics windowMetrics = activity.getWindowManager().getCurrentWindowMetrics();
-            Insets insets = windowMetrics.getWindowInsets()
-                    .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
-            return windowMetrics.getBounds().height() - insets.top - insets.bottom;
-        } else {
-            DisplayMetrics displayMetrics = new DisplayMetrics();
-            activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-            return displayMetrics.heightPixels;
-        }
-    }
-    */
 
 
     public void on(View v){
@@ -294,6 +317,7 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             String info = ((TextView) view).getText().toString();
             String address = info.substring(info.length() - 17);
+            final String name = info.substring(0,info.length() - 17);
             new Thread() {
                 @Override
                 public void run() {
@@ -316,6 +340,8 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
                         Log.v(TAG, "Connection exception!");
                         try {
                             mmSocket.close();
+                            mHandler.obtainMessage(CONNECTING_STATUS, -1, -1)
+                                    .sendToTarget();
                             /*mmSocket = (BluetoothSocket) mmDevice.getClass().getMethod("createRfcommSocket", new Class[]{int.class}).invoke(mmDevice, 1);
                             mmSocket.connect();
                         } catch (NoSuchMethodException e) {
@@ -329,6 +355,8 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
 
                         }
                     }
+                    mHandler.obtainMessage(CONNECTING_STATUS, 1, -1, name)
+                            .sendToTarget();
                     mConnectedThread = new ConnectedThread(mmSocket, mHandler);
                     mConnectedThread.start();
                     /*
@@ -343,7 +371,6 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
             }.start();
         }
     };
-
 
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -360,9 +387,99 @@ public abstract class AndroidGame extends AppCompatActivity implements Game {
     }
 
     private void showGraph(){
-        setContentView(renderView);
+        if (checkOverlayDisplayPermission()) {
+            setContentView(renderView);
+            // FloatingWindowGFG service is started
+            startService(new Intent(this, FloatingWindow.class));
+            // The MainActivity closes here
+         //   finish();
+        } else {
+            // If permission is not given,
+            // it shows the AlertDialog box and
+            // redirects to the Settings
+            requestOverlayDisplayPermission();
+        }
+        //Intent intent = new Intent(this, VideoActivity.class);
+        //startActivity(intent);
         // Intent intent = new Intent(this, MuscleVolt.class);
         //startActivity(intent);
+    }
+
+    private boolean isMyServiceRunning() {
+        // The ACTIVITY_SERVICE is needed to retrieve a
+        // ActivityManager for interacting with the global system
+        // It has a constant String value "activity".
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+
+        // A loop is needed to get Service information that
+        // are currently running in the System.
+        // So ActivityManager.RunningServiceInfo is used.
+        // It helps to retrieve a
+        // particular service information, here its this service.
+        // getRunningServices() method returns a list of the
+        // services that are currently running
+        // and MAX_VALUE is 2147483647. So at most this many services
+        // can be returned by this method.
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            // If this service is found as a running,
+            // it will return true or else false.
+            if (FloatingWindow.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void requestOverlayDisplayPermission() {
+        // An AlertDialog is created
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        // This dialog can be closed, just by taping
+        // anywhere outside the dialog-box
+        builder.setCancelable(true);
+
+        // The title of the Dialog-box is set
+        builder.setTitle("Screen Overlay Permission Needed");
+
+        // The message of the Dialog-box is set
+        builder.setMessage("Enable 'Display over other apps' from System Settings.");
+
+        // The event of the Positive-Button is set
+        builder.setPositiveButton("Open Settings", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // The app will redirect to the 'Display over other apps' in Settings.
+                // This is an Implicit Intent. This is needed when any Action is needed
+                // to perform, here it is
+                // redirecting to an other app(Settings).
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+
+                // This method will start the intent. It takes two parameter, one is the Intent and the other is
+                // an requestCode Integer. Here it is -1.
+                startActivityForResult(intent, RESULT_OK);
+            }
+        });
+        dialog = builder.create();
+        // The Dialog will
+        // show in the screen
+        dialog.show();
+    }
+
+    private boolean checkOverlayDisplayPermission() {
+        // Android Version is lesser than Marshmallow or
+        // the API is lesser than 23
+        // doesn't need 'Display over other apps' permission enabling.
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+            // If 'Display over other apps' is not enabled
+            // it will return false or else true
+            if (!Settings.canDrawOverlays(this)) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return true;
+        }
     }
 
     @Override
