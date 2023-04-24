@@ -1,5 +1,19 @@
-package com.esark.roboticArm;
+package com.esark.roboticarm;
 
+
+
+import static com.esark.roboticarm.GameScreen.clawClosed;
+import static com.esark.roboticarm.GameScreen.clawOpen;
+import static com.esark.roboticarm.GameScreen.down;
+import static com.esark.roboticarm.GameScreen.in;
+import static com.esark.roboticarm.GameScreen.left;
+import static com.esark.roboticarm.GameScreen.out;
+import static com.esark.roboticarm.GameScreen.record;
+import static com.esark.roboticarm.GameScreen.repeat;
+import static com.esark.roboticarm.GameScreen.right;
+import static com.esark.roboticarm.GameScreen.tipDown;
+import static com.esark.roboticarm.GameScreen.tipUp;
+import static com.esark.roboticarm.GameScreen.up;
 
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
@@ -7,28 +21,12 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.esark.roboticArm.IntToChars;
 import com.esark.framework.AndroidGame;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import static com.esark.roboticArm.GameScreen.c;
-import static com.esark.roboticArm.GameScreen.b;
-import static com.esark.roboticArm.GameScreen.delay;
-import static com.esark.roboticArm.GameScreen.l;
-import static com.esark.roboticArm.GameScreen.o;
-import static com.esark.roboticArm.GameScreen.r;
-import static com.esark.roboticArm.GameScreen.s;
-import static com.esark.roboticArm.GameScreen.stopSendingBoom;
-import static com.esark.roboticArm.GameScreen.stopSendingCurl;
-import static com.esark.roboticArm.GameScreen.stopSendingLeft;
-import static com.esark.roboticArm.GameScreen.stopSendingLeftTrack;
-import static com.esark.roboticArm.GameScreen.stopSendingOrbit;
-import static com.esark.roboticArm.GameScreen.stopSendingRight;
-import static com.esark.roboticArm.GameScreen.stopSendingRightTrack;
-import static com.esark.roboticArm.GameScreen.stopSendingStick;
 
 //Connected Thread handles Bluetooth communication
 public class ConnectedThread extends Thread {
@@ -36,9 +34,6 @@ public class ConnectedThread extends Thread {
     private final InputStream mmInStream;
     private final OutputStream mmOutStream;
     private final Handler mHandler;
-   // public IntToChars mIntToChars;
-    public String[] returnArray = new String[] {"0", "0", "0", "0"};
-    IntToChars mIntToChars = new IntToChars();
 
     public ConnectedThread(BluetoothSocket socket, Handler handler) {
         mmSocket = socket;
@@ -65,10 +60,10 @@ public class ConnectedThread extends Thread {
             try {
                 // Read from the InputStream
                 bytes = mmInStream.available();
-                byte[] buffer = new byte[60];
+                byte[] buffer = new byte[80];
                 if (bytes != 0) {
                     //SystemClock.sleep(100); //pause and wait for rest of data. Adjust this depending on your sending speed. Originally 100
-                    bytes = mmInStream.read(buffer, 0, 50); // record how many bytes we actually read
+                    bytes = mmInStream.read(buffer, 0, 80); // record how many bytes we actually read
                     mHandler.obtainMessage(AndroidGame.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget(); // Send the obtained bytes to the UI activity
 
@@ -79,8 +74,79 @@ public class ConnectedThread extends Thread {
                 break;
             }
 
-            write("Esark is a Mad Scientist");
-            SystemClock.sleep(1000);
+
+            if(clawOpen == 1){
+                write("n");
+                SystemClock.sleep(10);
+            }
+            else if(clawClosed == 1){
+                write("c");
+                SystemClock.sleep(10);
+            }
+            else if(clawOpen == 0 && clawClosed == 0){
+                write("%");
+                SystemClock.sleep(10);
+            }
+
+            if(up == 1){
+                write("u");
+                SystemClock.sleep(10);
+            }
+            else if(down == 1){
+                write("d");
+                SystemClock.sleep(10);
+            }
+            else if(down == 0 && up == 0) {
+                write("@");
+                SystemClock.sleep(10);
+            }
+            if(left == 1){
+                write("l");
+                SystemClock.sleep(10);
+            }
+            else if(right == 1){
+                write("r");
+                SystemClock.sleep(10);
+            }
+            else if(right == 0 && left == 0){
+                write("$");
+                SystemClock.sleep(10);
+            }
+            if(out == 1 && in == 0){
+                write("O");
+                SystemClock.sleep(10);
+            }
+            else if(in == 1 && out == 0){
+                write("I");
+                SystemClock.sleep(10);
+            }
+            else if(in == 0 && out == 0){
+                write("&");
+                SystemClock.sleep(10);
+            }
+            if(tipDown == 1){
+                write("t");             //Tip Down
+                SystemClock.sleep(10);
+            }
+            else if(tipUp == 1){
+                write("p");             //Tip Up
+                SystemClock.sleep(10);
+            }
+            else if(tipDown == 0 && tipUp == 0){
+                write("^");             //Stop tip motor
+                SystemClock.sleep(10);
+            }
+            /*
+            if(record == 1){
+                write("rec");
+             //  SystemClock.sleep(100);
+            }
+            if(repeat == 1){
+                write("rep");
+                //SystemClock.sleep(100);
+            }
+
+             */
         }
     }
 
