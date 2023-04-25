@@ -104,14 +104,14 @@ public abstract class AndroidGame extends Activity implements Game {
     private int m = 0;
     public static final int bufferSize = 100;
 
-    int n = 0;
+    public int n = 0;
+    public int breakFlag = 0;
     int t = 0;
     public static int landscape = 0;
     public static char startChar = 0;
     public static int width = 0;
     public static int height = 0;
 
-    public static int arrayFilled = 0;
 
    // private LruCache<String, Bitmap> mMemoryCache;
     //public int count = 0;
@@ -167,6 +167,7 @@ public abstract class AndroidGame extends Activity implements Game {
                                 t++;
                             }
                             if (readMessage.charAt(t) == 's') {         //Next char is a number
+                             //   if(readMessage.charAt(t + 4) !)        //Checks if charAt(t + 4) is in bounds
                                 t++;
                                 number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
                                 t++;
@@ -186,16 +187,28 @@ public abstract class AndroidGame extends Activity implements Game {
 
                             t++;
                             if (readMessage.charAt(t) == 't') {         //Next char is a number
-                                t++;
-                                number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
-                                t++;
-                                number100 = (Character.getNumericValue(readMessage.charAt((t)))) * 100;
-                                t++;
-                                number10 = (Character.getNumericValue(readMessage.charAt((t)))) * 10;
-                                t++;
-                                number1 = Character.getNumericValue(readMessage.charAt((t)));
-                                if ((number1000 + number100 + number10 + number1) >= 0) {
-                                    GameScreen.tipADC = (number1000 + number100 + number10 + number1);
+                                for(n = 1; n < 5; n++){
+                                    //Log.d("ADebugTag", "readMessage: " + (int)(readMessage.charAt(t + n)));
+                                    if((int)(readMessage.charAt(t + n)) < 48 || (int)(readMessage.charAt(t + n)) > 57){
+                                        breakFlag = 1;
+                                    }
+                                }
+                                if(breakFlag == 1){
+                                    breakFlag = 0;
+                                    break;
+                                }
+                                if(breakFlag != 1) {
+                                    t++;
+                                    number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
+                                    t++;
+                                    number100 = (Character.getNumericValue(readMessage.charAt((t)))) * 100;
+                                    t++;
+                                    number10 = (Character.getNumericValue(readMessage.charAt((t)))) * 10;
+                                    t++;
+                                    number1 = Character.getNumericValue(readMessage.charAt((t)));
+                                    if ((number1000 + number100 + number10 + number1) >= 0) {
+                                        GameScreen.tipADC[k] = (number1000 + number100 + number10 + number1);
+                                    }
                                 }
                                 k++;
                                 if (k >= bufferSize) {

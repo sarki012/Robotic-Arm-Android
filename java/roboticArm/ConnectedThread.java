@@ -35,6 +35,9 @@ public class ConnectedThread extends Thread {
     private final OutputStream mmOutStream;
     private final Handler mHandler;
 
+    public static int arrayFilled = 0;
+    public static int count = 0;
+
     public ConnectedThread(BluetoothSocket socket, Handler handler) {
         mmSocket = socket;
         mHandler = handler;
