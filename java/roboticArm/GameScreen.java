@@ -11,12 +11,13 @@ import com.esark.framework.Pixmap;
 import com.esark.framework.Screen;
 import com.esark.video.FloatingWindow;
 
-import static com.esark.framework.AndroidGame.arrayFilled;
 import static com.esark.framework.AndroidGame.bufferSize;
 import static com.esark.roboticarm.Assets.blueJoystick;
 import static com.esark.roboticarm.Assets.excavatorTabletLandscapeBackground;
 import static com.esark.roboticarm.Assets.redJoystick;
 import static com.esark.roboticarm.Assets.robotPortraitBackground;
+import static com.esark.roboticarm.ConnectedThread.arrayFilled;
+import static com.esark.roboticarm.ConnectedThread.count;
 
 import java.util.List;
 
@@ -42,8 +43,8 @@ public class GameScreen extends Screen implements Input {
     public final int arraySize = 100;
     public static int[] boomADC = new int[50];
     public static int[] stickADC = new int[1000];
-    //public static int[] tipADC = new int[2000];
-    public int[] tip = new int[2000];
+    public static int[] tipADC = new int[100];
+    public int[] tip = new int[100];
     public static int[] clawADC = new int[1000];
 
     public int stickBuffer = 0;
@@ -57,13 +58,17 @@ public class GameScreen extends Screen implements Input {
     public int k = 0;
     public int m = 0;
     public int n = 0;
+    public int q = 0;
+    public int r = 0;
     public double stickSD = 0;
     public double tipSD = 0;
     public Pixmap backgroundPixmap = null;
     private static final int INVALID_POINTER_ID = -1;
     // The ‘active pointer’ is the one currently moving our object.
     private int mActivePointerId = INVALID_POINTER_ID;
-    public static int tipADC = 0;
+    //public static int tipADC = 0;
+    public int filled = 0;
+    public int fillCount = 0;
 
     //Constructor
     public GameScreen(Game game) {
@@ -83,12 +88,12 @@ public class GameScreen extends Screen implements Input {
         Graphics g = game.getGraphics();
         backgroundPixmap = Assets.robotPortraitBackground;
         g.drawPortraitPixmap(backgroundPixmap, 0, 0);
-
-        if(arrayFilled == 0) {
-            tip[k] = tipADC;
-            k++;
-            if(k == arraySize){
-                arrayFilled = 1;
+/*
+        if(filled == 0) {
+            tip[fillCount] = tipADC;
+            fillCount++;
+            if(fillCount == arraySize){
+                filled = 1;
             }
         }
         else {
@@ -103,7 +108,7 @@ public class GameScreen extends Screen implements Input {
             tipAvg = tipBuffer / arraySize;
             tipBuffer = 0;
             for (k = 0; k < arraySize; k++) {
-                tipSD = Math.pow(tip[k] - tipAvg, 2);
+                tipSD += Math.pow(tip[k] - tipAvg, 2);
             }
             tipSD = Math.sqrt(tipSD / arraySize);
             for (k = 0; k < arraySize; k++) {
@@ -119,34 +124,37 @@ public class GameScreen extends Screen implements Input {
             g.drawText(String.valueOf(tipAvg), 830, 1160);
             tipBuffer = 0;
         }
-
-        /*
+*/
+        tipBuffer = 0;
+        tipSD = 0;
         for (k = 0; k < arraySize; k++) {
             tip[k] = tipADC[k];
         }
-        for (k = 0; k < arraySize; k++) {
-            tipBuffer += tip[k];
+        for (m = 0; m < arraySize; m++) {
+            tipBuffer += tip[m];
         }
         tipAvg = tipBuffer / arraySize;
         tipBuffer = 0;
-        for (k = 0; k < arraySize; k++) {
-            tipSD = Math.pow(tip[k] - tipAvg, 2);
+
+        for (n = 0; n < arraySize; n++) {
+            tipSD += Math.pow((double)(tip[n] - tipAvg), 2);
         }
         tipSD = Math.sqrt(tipSD / arraySize);
-        for (k = 0; k < arraySize; k++) {
-            if ((Math.abs(tip[k] - tipAvg)) > (2 * tipSD)){
-                tip[k] = tipAvg;
+        for (q = 0; q < arraySize; q++) {
+            if ((Math.abs(tip[q] - tipAvg)) > (1 * tipSD)){
+                tip[q] = tipAvg;
             }
         }
-        for (k = 0; k < arraySize; k++) {
-            tipBuffer += tip[k];
+        for (r = 0; r < arraySize; r++) {
+            tipBuffer += tip[r];
         }
         tipAvg = tipBuffer / arraySize;
+
+
         g.drawFBRect(830, 960);
         g.drawText(String.valueOf(tipAvg), 830, 1160);
-        tipBuffer = 0;
-        access = 0;
-*/
+       // tipBuffer = 0;
+
 
         /*
         stickBuffer += stickADC[k];
