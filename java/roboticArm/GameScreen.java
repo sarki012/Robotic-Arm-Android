@@ -39,27 +39,14 @@ public class GameScreen extends Screen implements Input {
     public static int repeat = 0;
 
     public int i = 1;
-
+    public int stickFilteredSignal = 0;
+    public int tipFilteredSignal = 0;
+    public int clawFilteredSignal = 0;
+    public int stickDeg = 0;
+    public int tipDeg = 0;
+    public int clawDeg = 0;
     public final int arraySize = 100;
-    public static int[] boomADC = new int[50];
-    public static int[] stickADC = new int[1000];
-    public static int[] tipADC = new int[100];
-    public int[] tip = new int[100];
-    public static int[] clawADC = new int[1000];
 
-    public int stickBuffer = 0;
-    public int stickAvg = 0;
-    public int tipBuffer = 0;
-    public int tipAvg = 0;
-    public int stickAvgPrev;
-    public int stickCount = 0;
-    public int stickADCPrev = 0;
-    public int start = 0;
-    public int k = 0;
-    public int m = 0;
-    public int n = 0;
-    public int q = 0;
-    public int r = 0;
     public double stickSD = 0;
     public double tipSD = 0;
     public Pixmap backgroundPixmap = null;
@@ -69,6 +56,7 @@ public class GameScreen extends Screen implements Input {
     //public static int tipADC = 0;
     public int filled = 0;
     public int fillCount = 0;
+    OutlierRemover filter = new OutlierRemover();
 
     //Constructor
     public GameScreen(Game game) {
@@ -88,73 +76,19 @@ public class GameScreen extends Screen implements Input {
         Graphics g = game.getGraphics();
         backgroundPixmap = Assets.robotPortraitBackground;
         g.drawPortraitPixmap(backgroundPixmap, 0, 0);
-/*
-        if(filled == 0) {
-            tip[fillCount] = tipADC;
-            fillCount++;
-            if(fillCount == arraySize){
-                filled = 1;
-            }
-        }
-        else {
-            for (k = arraySize - 1; k > 0; k--) {
-                tip[k] = tip[k - 1];        //Shift all ints to the right
-            }
-            tip[0] = tipADC;
 
-            for (k = 0; k < arraySize; k++) {
-                tipBuffer += tip[k];
-            }
-            tipAvg = tipBuffer / arraySize;
-            tipBuffer = 0;
-            for (k = 0; k < arraySize; k++) {
-                tipSD += Math.pow(tip[k] - tipAvg, 2);
-            }
-            tipSD = Math.sqrt(tipSD / arraySize);
-            for (k = 0; k < arraySize; k++) {
-                if ((Math.abs(tip[k] - tipAvg)) > (3 * tipSD)) {
-                    tip[k] = tipAvg;
-                }
-            }
-            for (k = 0; k < arraySize; k++) {
-                tipBuffer += tip[k];
-            }
-            tipAvg = tipBuffer / arraySize;
-            g.drawFBRect(830, 960);
-            g.drawText(String.valueOf(tipAvg), 830, 1160);
-            tipBuffer = 0;
-        }
-*/
-        tipBuffer = 0;
-        tipSD = 0;
-        for (k = 0; k < arraySize; k++) {
-            tip[k] = tipADC[k];
-        }
-        for (m = 0; m < arraySize; m++) {
-            tipBuffer += tip[m];
-        }
-        tipAvg = tipBuffer / arraySize;
-        tipBuffer = 0;
-
-        for (n = 0; n < arraySize; n++) {
-            tipSD += Math.pow((double)(tip[n] - tipAvg), 2);
-        }
-        tipSD = Math.sqrt(tipSD / arraySize);
-        for (q = 0; q < arraySize; q++) {
-            if ((Math.abs(tip[q] - tipAvg)) > (1 * tipSD)){
-                tip[q] = tipAvg;
-            }
-        }
-        for (r = 0; r < arraySize; r++) {
-            tipBuffer += tip[r];
-        }
-        tipAvg = tipBuffer / arraySize;
-
-
+        stickFilteredSignal = filter.removeOutliers('s');
+        stickDeg = (int) ((stickFilteredSignal - 298) / 2.6);     //Max out = 610, Max in = 298
+        g.drawFBRect(830, 580);
+        g.drawText(String.valueOf(stickDeg), 1300, 780);
+        tipFilteredSignal = filter.removeOutliers('t');
+        tipDeg = (int) ((852 - tipFilteredSignal)/4.725);     //Max up = 285, Max down = 852
         g.drawFBRect(830, 960);
-        g.drawText(String.valueOf(tipAvg), 830, 1160);
-       // tipBuffer = 0;
-
+        g.drawText(String.valueOf(tipDeg), 1300, 1160);
+        clawFilteredSignal = filter.removeOutliers('c');
+        clawDeg = (int) ((635 - clawFilteredSignal)/2.9667);     //Max open = 635, Max closed = 279
+        g.drawFBRect(830, 1340);
+        g.drawText(String.valueOf(clawDeg), 1300, 1540);
 
         /*
         stickBuffer += stickADC[k];
