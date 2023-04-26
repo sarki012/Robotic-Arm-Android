@@ -112,6 +112,11 @@ public abstract class AndroidGame extends Activity implements Game {
     public static int width = 0;
     public static int height = 0;
 
+    public static int[] boomADC = new int[50];
+    public static int[] stickADC = new int[100];
+    public static int[] tipADC = new int[100];
+
+    public static int[] clawADC = new int[100];
 
    // private LruCache<String, Bitmap> mMemoryCache;
     //public int count = 0;
@@ -178,7 +183,7 @@ public abstract class AndroidGame extends Activity implements Game {
                                 number1 = Character.getNumericValue(readMessage.charAt((t)));
                                 if ((number1000 + number100 + number10 + number1) >= 0) {
                                     //stickBuffer += (number1000 + number100 + number10 + number1);
-                                    GameScreen.stickADC[j] = (number1000 + number100 + number10 + number1);
+                                    stickADC[j] = (number1000 + number100 + number10 + number1);
                                 }
                                 j++;
                                 if (j >= bufferSize)
@@ -187,6 +192,7 @@ public abstract class AndroidGame extends Activity implements Game {
 
                             t++;
                             if (readMessage.charAt(t) == 't') {         //Next char is a number
+                                /*
                                 for(n = 1; n < 5; n++){
                                     //Log.d("ADebugTag", "readMessage: " + (int)(readMessage.charAt(t + n)));
                                     if((int)(readMessage.charAt(t + n)) < 48 || (int)(readMessage.charAt(t + n)) > 57){
@@ -198,23 +204,24 @@ public abstract class AndroidGame extends Activity implements Game {
                                     break;
                                 }
                                 if(breakFlag != 1) {
-                                    t++;
-                                    number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
-                                    t++;
-                                    number100 = (Character.getNumericValue(readMessage.charAt((t)))) * 100;
-                                    t++;
-                                    number10 = (Character.getNumericValue(readMessage.charAt((t)))) * 10;
-                                    t++;
-                                    number1 = Character.getNumericValue(readMessage.charAt((t)));
-                                    if ((number1000 + number100 + number10 + number1) >= 0) {
-                                        GameScreen.tipADC[k] = (number1000 + number100 + number10 + number1);
-                                    }
+
+                                 */
+                                t++;
+                                number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
+                                t++;
+                                number100 = (Character.getNumericValue(readMessage.charAt((t)))) * 100;
+                                t++;
+                                number10 = (Character.getNumericValue(readMessage.charAt((t)))) * 10;
+                                t++;
+                                number1 = Character.getNumericValue(readMessage.charAt((t)));
+                                if ((number1000 + number100 + number10 + number1) >= 0) {
+                                    tipADC[k] = (number1000 + number100 + number10 + number1);
                                 }
+                            }
                                 k++;
                                 if (k >= bufferSize) {
                                     k = 0;
                                 }
-                            }
                             t++;
                             if (readMessage.charAt(t) == 'c') {         //Next char is a number
                                 t++;
@@ -226,7 +233,7 @@ public abstract class AndroidGame extends Activity implements Game {
                                 t++;
                                 number1 = Character.getNumericValue(readMessage.charAt((t)));
                                 if ((number1000 + number100 + number10 + number1) >= 0) {
-                                    GameScreen.clawADC[m] = (number1000 + number100 + number10 + number1);
+                                    clawADC[m] = (number1000 + number100 + number10 + number1);
                                 }
                                 m++;
                                 if (m >= bufferSize) {
