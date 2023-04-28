@@ -39,13 +39,15 @@ public class GameScreen extends Screen implements Input {
     public static int repeat = 0;
 
     public int i = 1;
-    public int stickFilteredSignal = 0;
-    public int tipFilteredSignal = 0;
-    public int clawFilteredSignal = 0;
-    public int stickDeg = 0;
-    public int tipDeg = 0;
-    public int clawDeg = 0;
-    public final int arraySize = 100;
+    private int boomFilteredSignal = 0;
+    private int stickFilteredSignal = 0;
+    private int tipFilteredSignal = 0;
+    private int clawFilteredSignal = 0;
+    private int boomDeg = 0;
+    private int stickDeg = 0;
+    private int tipDeg = 0;
+    private int clawDeg = 0;
+    private final int arraySize = 50;
 
     public double stickSD = 0;
     public double tipSD = 0;
@@ -77,18 +79,21 @@ public class GameScreen extends Screen implements Input {
         backgroundPixmap = Assets.robotPortraitBackground;
         g.drawPortraitPixmap(backgroundPixmap, 0, 0);
 
+        boomFilteredSignal = filter.removeOutliers('b');
+        g.drawFBRect(830, 200);
+        g.drawText(String.valueOf(boomFilteredSignal), 1300, 400);
         stickFilteredSignal = filter.removeOutliers('s');
-        stickDeg = (int) ((stickFilteredSignal - 298) / 2.6);     //Max out = 610, Max in = 298
+       // stickDeg = (int) ((stickFilteredSignal - 298) / 2.6);     //Max out = 610, Max in = 298
         g.drawFBRect(830, 580);
-        g.drawText(String.valueOf(stickDeg), 1300, 780);
+        g.drawText(String.valueOf(stickFilteredSignal), 1300, 780);
         tipFilteredSignal = filter.removeOutliers('t');
-        tipDeg = (int) ((852 - tipFilteredSignal)/4.725);     //Max up = 285, Max down = 852
+        //tipDeg = (int) ((852 - tipFilteredSignal)/4.725);     //Max up = 285, Max down = 852
         g.drawFBRect(830, 960);
-        g.drawText(String.valueOf(tipDeg), 1300, 1160);
+        g.drawText(String.valueOf(tipFilteredSignal), 1300, 1160);
         clawFilteredSignal = filter.removeOutliers('c');
-        clawDeg = (int) ((635 - clawFilteredSignal)/2.9667);     //Max open = 635, Max closed = 279
+        //clawDeg = (int) ((635 - clawFilteredSignal)/2.9667);     //Max open = 635, Max closed = 279
         g.drawFBRect(830, 1340);
-        g.drawText(String.valueOf(clawDeg), 1300, 1540);
+        g.drawText(String.valueOf(clawFilteredSignal), 1300, 1540);
 
         /*
         stickBuffer += stickADC[k];
@@ -165,7 +170,7 @@ public class GameScreen extends Screen implements Input {
 
 
          */
-
+        //g.drawTestRect(1100, 1850);
         int len = touchEvents.size();
         for (int i = 0; i < len; i++) {
             TouchEvent event = touchEvents.get(i);
@@ -217,7 +222,7 @@ public class GameScreen extends Screen implements Input {
             }
             if (event.type == TouchEvent.TOUCH_DRAGGED || event.type == TouchEvent.TOUCH_DOWN) {    //A thumb is pressed or dragging the screen
                 //The following code determines which region of the screen the thumb was pressed
-                if (x > 1100 && x < 1160 && y > 1850 && y < 2350) {       //Back button
+                if (x > 1100 && x < 1600 && y > 1850 && y < 2350) {       //Back button
                     //Back Button Code Here
                      backgroundPixmap.dispose();
                     Intent intent2 = new Intent(context.getApplicationContext(), RoboticArm.class);
