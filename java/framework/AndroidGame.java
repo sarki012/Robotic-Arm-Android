@@ -104,9 +104,11 @@ public abstract class AndroidGame extends Activity implements Game {
     private int m = 0;
     private int n = 0;
     private int q = 0;
+    private int count = 0;
     public static final int bufferSize = 10;
-
+    private int tLast = 0;
     public int breakFlag = 0;
+    private final int loopCount = 30;
     int t = 0;
     public static int landscape = 0;
     public static char startChar = 0;
@@ -166,21 +168,18 @@ public abstract class AndroidGame extends Activity implements Game {
                     try {
                         readMessage = new String((byte[]) msg.obj, "UTF-8");
                         System.out.println(readMessage);
-
                         breakFlag = 0;
 
-                        for(int t = 0; t < 50; t++) {
-                            if (readMessage.charAt(t) == '-') {
-                                t++;
-                            }
+                        for(int t = 0; t < loopCount; t++) {
+                            breakFlag = 0;
                             if (readMessage.charAt(t) == 'b') {         //Next char is a number
-                                for(n = 1; n < 5; n++){
+                                for (n = 1; n < 5; n++) {
                                     //Log.d("ADebugTag", "readMessage: " + (int)(readMessage.charAt(t + n)));
-                                    if((int)(readMessage.charAt(t + n)) < 48 || (int)(readMessage.charAt(t + n)) > 57){
+                                    if ((int) (readMessage.charAt(t + n)) < 48 || (int) (readMessage.charAt(t + n)) > 57) {
                                         breakFlag = 1;
                                     }
                                 }
-                                if(breakFlag != 1) {
+                                if (breakFlag != 1) {
                                     t++;
                                     number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
                                     t++;
@@ -196,18 +195,21 @@ public abstract class AndroidGame extends Activity implements Game {
                                     q++;
                                     if (q >= bufferSize)
                                         q = 0;
+                                    break;
                                 }
                             }
+                        }
+
+                        for(int t = 0; t < loopCount; t++) {
                             breakFlag = 0;
-                            t++;
                             if (readMessage.charAt(t) == 's') {         //Next char is a number
-                                for(n = 1; n < 5; n++){
+                                for (n = 1; n < 5; n++) {
                                     //Log.d("ADebugTag", "readMessage: " + (int)(readMessage.charAt(t + n)));
-                                    if((int)(readMessage.charAt(t + n)) < 48 || (int)(readMessage.charAt(t + n)) > 57){
+                                    if ((int) (readMessage.charAt(t + n)) < 48 || (int) (readMessage.charAt(t + n)) > 57) {
                                         breakFlag = 1;
                                     }
                                 }
-                                if(breakFlag != 1) {
+                                if (breakFlag != 1) {
                                     t++;
                                     number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
                                     t++;
@@ -223,19 +225,21 @@ public abstract class AndroidGame extends Activity implements Game {
                                     j++;
                                     if (j >= bufferSize)
                                         j = 0;
+                                    break;
                                 }
                             }
-                            breakFlag = 0;
+                        }
 
-                            t++;
+                        for(int t = 0; t < loopCount; t++) {
+                            breakFlag = 0;
                             if (readMessage.charAt(t) == 't') {         //Next char is a number
-                                for(n = 1; n < 5; n++){
+                                for (n = 1; n < 5; n++) {
                                     //Log.d("ADebugTag", "readMessage: " + (int)(readMessage.charAt(t + n)));
-                                    if((int)(readMessage.charAt(t + n)) < 48 || (int)(readMessage.charAt(t + n)) > 57){
+                                    if ((int) (readMessage.charAt(t + n)) < 48 || (int) (readMessage.charAt(t + n)) > 57) {
                                         breakFlag = 1;
                                     }
                                 }
-                                if(breakFlag != 1) {
+                                if (breakFlag != 1) {
                                     t++;
                                     number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
                                     t++;
@@ -251,18 +255,20 @@ public abstract class AndroidGame extends Activity implements Game {
                                     if (k >= bufferSize) {
                                         k = 0;
                                     }
+                                    break;
                                 }
                             }
+                        }
+                        for(int t = 0; t < loopCount; t++) {
                             breakFlag = 0;
-                            t++;
                             if (readMessage.charAt(t) == 'c') {         //Next char is a number
-                                for(n = 1; n < 5; n++){
+                                for (n = 1; n < 5; n++) {
                                     //Log.d("ADebugTag", "readMessage: " + (int)(readMessage.charAt(t + n)));
-                                    if((int)(readMessage.charAt(t + n)) < 48 || (int)(readMessage.charAt(t + n)) > 57){
+                                    if ((int) (readMessage.charAt(t + n)) < 48 || (int) (readMessage.charAt(t + n)) > 57) {
                                         breakFlag = 1;
                                     }
                                 }
-                                if(breakFlag != 1) {
+                                if (breakFlag != 1) {
                                     t++;
                                     number1000 = (Character.getNumericValue(readMessage.charAt((t)))) * 1000;
                                     t++;
@@ -278,9 +284,9 @@ public abstract class AndroidGame extends Activity implements Game {
                                     if (m >= bufferSize) {
                                         m = 0;
                                     }
+                                    break;
                                 }
                             }
-                            breakFlag = 0;
                         }
 
                     } catch (UnsupportedEncodingException e) {
