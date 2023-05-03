@@ -83,7 +83,7 @@ public class GameScreen extends Screen implements Input {
         g.drawFBRect(830, 200);
         g.drawText(String.valueOf(boomFilteredSignal), 1300, 400);
         stickFilteredSignal = filter.removeOutliers('s');
-       // stickDeg = (int) ((stickFilteredSignal - 298) / 2.6);     //Max out = 610, Max in = 298
+        // stickDeg = (int) ((stickFilteredSignal - 298) / 2.6);     //Max out = 610, Max in = 298
         g.drawFBRect(830, 580);
         g.drawText(String.valueOf(stickFilteredSignal), 1300, 780);
         tipFilteredSignal = filter.removeOutliers('t');
