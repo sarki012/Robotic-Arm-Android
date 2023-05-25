@@ -12,6 +12,7 @@ import com.esark.framework.Screen;
 import com.esark.video.FloatingWindow;
 
 import static com.esark.framework.AndroidGame.bufferSize;
+import static com.esark.framework.AndroidGame.xDistance;
 import static com.esark.roboticarm.Assets.blueJoystick;
 import static com.esark.roboticarm.Assets.excavatorTabletLandscapeBackground;
 import static com.esark.roboticarm.Assets.redJoystick;
@@ -39,6 +40,11 @@ public class GameScreen extends Screen implements Input {
     public static int repeat = 0;
 
     public int i = 1;
+    private int alpha = 0;
+    private int alphaFB = 0;
+    private int beta = 0;
+    private int betaFB = 0;
+  //  private int xDistance = 0;
     private int boomFilteredSignal = 0;
     private int stickFilteredSignal = 0;
     private int tipFilteredSignal = 0;
@@ -78,6 +84,28 @@ public class GameScreen extends Screen implements Input {
         Graphics g = game.getGraphics();
         backgroundPixmap = Assets.robotPortraitBackground;
         g.drawPortraitPixmap(backgroundPixmap, 0, 0);
+
+        /*
+        alpha = filter.removeOutliers('a');
+        g.drawFBRect(830, 200);
+        g.drawText(String.valueOf(alpha), 1300, 400);
+        alphaFB = filter.removeOutliers('A');
+        // stickDeg = (int) ((stickFilteredSignal - 298) / 2.6);     //Max out = 610, Max in = 298
+        g.drawFBRect(830, 580);
+        g.drawText(String.valueOf(alphaFB), 1300, 780);
+        beta = filter.removeOutliers('b');
+        //tipDeg = (int) ((852 - tipFilteredSignal)/4.725);     //Max up = 285, Max down = 852
+        g.drawFBRect(830, 960);
+        g.drawText(String.valueOf(beta), 1300, 1160);
+        betaFB = filter.removeOutliers('B');
+        //clawDeg = (int) ((635 - clawFilteredSignal)/2.9667);     //Max open = 635, Max closed = 279
+        g.drawFBRect(830, 1340);
+        g.drawText(String.valueOf(betaFB), 1300, 1540);
+      //  xDistance = filter.removeOutliers('x');
+        g.drawFBRect(200, 200);
+        g.drawText(String.valueOf(xDistance), 500, 400);
+        */
+
 
         boomFilteredSignal = filter.removeOutliers('b');
         g.drawFBRect(830, 200);
